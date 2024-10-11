@@ -1,51 +1,108 @@
 {
-    "name": "environment-safe-template",
-    "version": "0.0.1",
-    "main": "dist/index.cjs",
+    "name": "@ansi-art/image",
+    "version": "3.0.0-alpha5",
+    "type": "module",
+    "main": "dist/index.mjs",
     "module": "src/index.mjs",
-    "homepage": "https://github.com/khrome/environment-safe-template",
-    "description": "A template for buildless module development",
+    "commonjs": "dist/index.cjs",
+    "exports": {
+        ".": {
+            "import": "./src/index.mjs",
+            "require": "./dist/index.cjs"
+        },
+        "./src/ansi-art.mjs": {
+            "import": "./src/file-saver.mjs",
+            "require": "./dist/file-saver.cjs"
+        },
+        "./dist/ansi-art.cjs": {
+            "import": "./src/file-saver.mjs",
+            "require": "./dist/file-saver.cjs"
+        },
+        "./index.js": {
+            "import": "./src/index.mjs",
+            "require": "./dist/index.cjs"
+        }
+    },
+    "homepage": "https://github.com/ansi-art/image",
+    "description": "convert an image to ascii-art",
     "keywords": [],
     "author": "Abbey Hawk Sparrow <@khrome> (http://patternweaver.com)",
     "contributors": [],
     "repository": {
-          "type": "git",
-          "url": "git@github.com:khrome/environment-safe-template.git"
-     },
+        "type": "git",
+        "url": "https://github.com/ansi-art/image"
+    },
     "bugs": {
-          "url": "https://github.com/khrome/environment-safe-template/issues"
+        "url": "https://github.com/ansi-art/image/issues"
     },
     "license": "MIT",
+    "moka": {
+        "firefox": {
+            "engine": "@open-automaton/playwright-mining-engine",
+            "options": {
+                "type": "firefox"
+            }
+        },
+        "chrome": {
+            "engine": "@open-automaton/playwright-mining-engine",
+            "options": {
+                "type": "chromium"
+            }
+        },
+        "safari": {
+            "engine": "@open-automaton/playwright-mining-engine",
+            "options": {
+                "type": "webkit"
+            }
+        },
+        "stub": "src/stub.mjs",
+        "stubs": [
+            "express",
+            "module",
+            "path"
+        ],
+        "shims": {
+            "chai": "node_modules/chai/chai.js",
+            "browser-or-node": "node_modules/browser-or-node/src/index.js"
+        }
+    },
     "devDependencies": {
         "@babel/cli": "^7.22.5",
         "@babel/core": "^7.22.5",
         "@babel/plugin-transform-modules-commonjs": "^7.22.5",
+        "@environment-safe/chai": "^0.1.0",
+        "@environment-safe/commonjs-builder": "^0.0.3",
+        "@environment-safe/jsdoc-builder": "^0.0.2",
+        "@open-automaton/moka": "^0.0.4",
         "babel-plugin-search-and-replace": "^1.1.1",
         "babel-plugin-transform-import-meta": "^2.2.0",
         "chai": "^4.3.7",
-        "environment-safe-chai": "^0.0.1",
         "eslint": "^8.43.0",
         "husky": "^8.0.3",
-        "jsdoc": "^3.6.11",
-        "jsdoc-to-markdown": "^8.0.0",
-        "mocha": "^10.2.0",
-        "mocha-chrome": "^2.2.0",
-        "tsd-jsdoc": "^2.5.0"
+        "mocha": "^10.2.0"
     },
     "scripts": {
         "lint": "./node_modules/.bin/eslint src/*.mjs test/*.mjs",
+        "test": "npm run import-test; npm run browser-test; npm run require-test",
         "import-test": "./node_modules/.bin/mocha test/test.mjs",
         "require-test": "./node_modules/.bin/mocha test/test.cjs",
-        "build-commonjs": "./node_modules/.bin/babel src --out-dir dist --out-file-extension .cjs",
-        "headless-browser-test": "./node_modules/.bin/mocha-chrome test/headless.html --chrome-flags '[ \"--disable-web-security\", \"--disable-site-isolation-trials\", \"--allow-file-access-from-files\", \"--allow-insecure-localhost\", \"--allow-running-insecure-content\"]' --ignore-exceptions",
-        "browser-test": "open http://localhost:8000/test/browser.html; npx http-server -p 8000",
+        "build-commonjs": "./node_modules/@environment-safe/commonjs-builder/bin/build.mjs",
+        "local-server": "open 'http://localhost:8085/' ; npx http-server -p 8085",
+        "headless-browser-test": "npm run headless-chrome-test; npm run headless-firefox-test; npm run headless-safari-test",
+        "headless-chrome-test": "moka --server . --browser chrome --relaxed --prefix ../ test/test.mjs",
+        "headless-firefox-test": "moka --server . --browser firefox --relaxed --prefix ../ test/test.mjs",
+        "headless-safari-test": "moka --server . --browser safari --relaxed --prefix ../ test/test.mjs",
+        "browser-test": "moka --server . --local-browser --relaxed --prefix ../ test/test.mjs",
         "container-test": "docker build . -t environment-safe-package.json -f ./containers/test.dockerfile; docker logs --follow \"$(docker run -d environment-safe-package.json)\"",
-        "generate-docs": "for i in src/*.mjs; do echo \"generating docs for: ${i}\";./node_modules/.bin/jsdoc2md -c .jsdoc.json \"${i}\" > \"docs/$(basename ${i%.mjs}).md\"; done",
-        "generate-types": "for i in src/*.mjs; do echo \"generating types for: ${i}\"; ./node_modules/.bin/jsdoc -t node_modules/tsd-jsdoc/dist -c .jsdoc.json \"${i}\"; mv out/types.d.ts \"src/$(basename ${i%.mjs}).d.ts\"; done; rmdir out",
+        "build-docs": "build-jsdoc docs",
+        "build-types": "build-jsdoc types",
         "add-generated-files-to-commit": "git add docs/*.md; git add src/*.d.ts; git add dist/*.cjs",
         "prepare": "husky install"
     },
     "dependencies": {
+        "@ansi-art/color": "file:../color",
+        "@ansi-art/tools": "file:../tools",
+        "@environment-safe/canvas": "^4.2.0",
         "browser-or-node": "^2.1.1"
     }
 }

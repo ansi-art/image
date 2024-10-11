@@ -1,5 +1,5 @@
 /* global describe:false, it:false */
-import { chai } from 'environment-safe-chai';
+import { chai } from '@environment-safe/chai';
 import { } from '../src/index.mjs';
 const should = chai.should();
 should.exist({});
